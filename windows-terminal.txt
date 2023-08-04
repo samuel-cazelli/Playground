@@ -1,2 +1,3 @@
 #select branch interactively using fzf https://github.com/junegunn/fzf
 git config --global alias.c '!git checkout $(git branch | fzf)'
+git config --global alias.m '!git merge $(git branch | fzf)'
