@@ -1,4 +1,12 @@
+Import-Module posh-git
+
 oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\meu.omp.json" | Invoke-Expression
+
+# Navegação com autocomplete
+Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
+
 
 
 function Write-ColorOutput($ForegroundColor) {
@@ -68,7 +76,7 @@ function Get-GitParentBranch {
     ($currentBranch = '')
 
     # Get the current branch name
-    if ($currentBranch -eq ''){
+    if ($currentBranch -eq '') {
         $currentBranch = git rev-parse --abbrev-ref HEAD
     }
 
@@ -105,13 +113,15 @@ function Get-GitRenameMergedBranches {
     param
     ($currentBranch = '')
 
-    if ($currentBranch -eq ''){
+    if ($currentBranch -eq '') {
         $currentBranch = git rev-parse --abbrev-ref HEAD
     }
 
     $mergedBranches = git branch --merged $currentBranch
 
-    $mergedBranches = $mergedBranches | Select-String  '(fix*)', '(feature*)'
+    $mergedBranches = $mergedBranches | Select-String  '(fix*)', '(feature*)', '(us*)'
+
+    $mergedBranches = $mergedBranches | ForEach-Object { if ($_ -notmatch '^\s*merge') { $_ } }
 
     echo $mergedBranches
 
@@ -127,10 +137,9 @@ function Get-GitRenameMergedBranches {
         
         $shouldSend = $Host.UI.PromptForChoice($title, '', $choices, 1)
         
-        if ( $shouldSend -eq '0')
-        {
-                $newName = 'merged/' + $currentBranch + '/' +  $_.ToString().Trim();
-                git branch -m $_.ToString().Trim() $newName
+        if ( $shouldSend -eq '0') {
+            $newName = 'merged/' + $currentBranch + '/' + $_.ToString().Trim();
+            git branch -m $_.ToString().Trim() $newName
         }
     }
 }
@@ -138,11 +147,20 @@ New-Alias -Name clearBranches -Value Get-GitRenameMergedBranches
 
 
 function Get-GitCheckoutBranch {
-    git checkout $(git branch | ForEach-Object { if ($_ -notmatch  '^\s*merge') { $_ } }  | fzf).ToString().Trim()
+    git checkout $(git branch | ForEach-Object { if ($_ -notmatch '^\s*merge') { $_ } }  | fzf).ToString().Trim()
 }
 New-Alias -Name c -Value Get-GitCheckoutBranch
 
-function Get-GitCheckoutBranch {
-    git merge $(git branch | ForEach-Object { if ($_ -notmatch  '^\s*merge') { $_ } }  | fzf).ToString().Trim()
+function Get-GitMergeBranch {
+    git merge $(git branch | ForEach-Object { if ($_ -notmatch '^\s*merge') { $_ } }  | fzf).ToString().Trim()
 }
-New-Alias -Name m -Value Get-GitCheckoutBranch
+New-Alias -Name m -Value Get-GitMergeBranch
+
+function Get-SearchFiles {
+    if ((Get-Location | select -ExpandProperty Path) -match '(frontend)'){
+        Get-ChildItem ./src -Recurse -Name | ForEach-Object { if ($_ -notmatch '(debug)|(bin)') { $_ } } | fzf --exact | ii
+    }else{
+        Get-ChildItem . -Recurse -Name | ForEach-Object { if ($_ -notmatch '(debug)|(bin)') { $_ } } | fzf --exact | ii
+    }
+}
+New-Alias -Name s -Value Get-SearchFiles
