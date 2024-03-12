@@ -7,7 +7,7 @@ Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
-
+######################################################################################################
 
 function Write-ColorOutput($ForegroundColor) {
     # save the current color
@@ -28,6 +28,7 @@ function Write-ColorOutput($ForegroundColor) {
     $host.UI.RawUI.ForegroundColor = $fc
 }
 
+######################################################################################################
 
 function Get-GitSendCurrentBranchTo { 
     
@@ -68,7 +69,7 @@ function Get-GitSendCurrentBranchTo {
 }
 New-Alias -Name sendTo -Value Get-GitSendCurrentBranchTo
 
-
+######################################################################################################
 
 function Get-GitParentBranch {
 
@@ -105,8 +106,7 @@ function Get-GitParentBranch {
 }
 New-Alias -Name parentBranch -Value Get-GitParentBranch
 
-
-
+######################################################################################################
 
 function Get-GitRenameMergedBranches {
 
@@ -143,18 +143,30 @@ function Get-GitRenameMergedBranches {
         }
     }
 }
-New-Alias -Name clearBranches -Value Get-GitRenameMergedBranches
+New-Alias -Name hideold -Value Get-GitRenameMergedBranches
 
+######################################################################################################
+
+function Get-GitDeleteMergedBranches {
+    git branch | Select-String -Pattern "merged" | %{ git branch -d $_.ToString().Trim() }
+}
+New-Alias -Name deleteold -Value Get-GitDeleteMergedBranches
+
+######################################################################################################
 
 function Get-GitCheckoutBranch {
     git checkout $(git branch | ForEach-Object { if ($_ -notmatch '^\s*merge') { $_ } }  | fzf).ToString().Trim()
 }
 New-Alias -Name c -Value Get-GitCheckoutBranch
 
+######################################################################################################
+
 function Get-GitMergeBranch {
     git merge $(git branch | ForEach-Object { if ($_ -notmatch '^\s*merge') { $_ } }  | fzf).ToString().Trim()
 }
 New-Alias -Name m -Value Get-GitMergeBranch
+
+######################################################################################################
 
 function Get-SearchFiles {
     if ((Get-Location | select -ExpandProperty Path) -match '(frontend)'){
