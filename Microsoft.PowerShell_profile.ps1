@@ -9,6 +9,25 @@ Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
 ######################################################################################################
 
+function Get-NewBranch {
+    param
+    ($branch)
+
+    if ($branch -ne '') {
+        git checkout -b $branch
+    }
+}
+New-Alias -Name b -Value Get-NewBranch
+
+######################################################################################################
+
+function Get-Pull {
+    git pull
+}
+New-Alias -Name p -Value Get-Pull
+
+######################################################################################################
+
 function Write-ColorOutput($ForegroundColor) {
     # save the current color
     $fc = $host.UI.RawUI.ForegroundColor
